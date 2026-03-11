@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import levene
 from sipbuild.generator.parser.rules import p_include
 
 
@@ -47,26 +48,40 @@ X1 = X[Y == 0].T
 X2 = X[Y == 1].T
 class_covs = [np.cov(X1), np.cov(X2)]
 
-test_point = np.array([3.5, 3])
+# test_point = np.array([3.5, 3])
+xspace = np.linspace(0,5, 100)
+yspace = np.linspace(0,4, 100)
+xs, ys = np.meshgrid(xspace, yspace)
+# 预测网格点
+test_point = np.c_[xs.ravel(), ys.ravel()]
 # 后验
-posterior_probability = []
-for i in range(2):
-    # 似然
-    n = len(class_means)
-    likelihood = pdf(test_point, class_means[i], class_covs[i], n)
-    # 后验概率
-    print(f"属于{i}组数据概率{prior_probability[i] * likelihood:.4f}")
-    posterior_probability.append(prior_probability[i] * likelihood)
+grid_label = []
+# 对网格点都进行预测
+for point in test_point:
+    posterior_probability = []
+    for i in range(2):
+        # 似然
+        n = len(class_means)
+        likelihood = pdf(point, class_means[i], class_covs[i], n)
+        # 后验概率
+        # print(f"属于{i}组数据概率{prior_probability[i] * likelihood:.4f}")
+        posterior_probability.append(prior_probability[i] * likelihood)
 
 
-pre_class = np.argmax(posterior_probability)
-print(f"{test_point}点属于{pre_class}")
+    pre_class = np.argmax(posterior_probability)
+    grid_label.append(pre_class)
+
+# 显示决策边界
+# print(f"{test_point}点属于{pre_class}")
+grid_label = np.array(grid_label).reshape(xs.shape)
 
 # 绘图
 plt.scatter(class1_points[:, 0], class1_points[:, 1], c='b', label='class1--group0')
 plt.scatter(class2_points[:, 0], class2_points[:, 1], c='r', label='class2--group1')
-plt.scatter(test_point[0], test_point[1], c='g', label='test_point')
+# plt.scatter(test_point[0], test_point[1], c='g', label='test_point')
+
+contour = plt.contour(xs, ys, grid_label, levels=[0.5], colors="green")
 plt.legend()
-plt.text(test_point[0]+0.1,test_point[1]-0.1, f"class {pre_class}")
+# plt.text(test_point[0]+0.1,test_point[1]-0.1, f"class {pre_class}")
 plt.show()
 
