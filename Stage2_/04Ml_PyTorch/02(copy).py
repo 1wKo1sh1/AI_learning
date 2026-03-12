@@ -68,7 +68,7 @@ model = LinearModel()
 '''
 # 3.损失函数 和 优化器
 criterion = nn.MSELoss() #均方差
-optimiser = torch.optim.SGD(model.parameters(), lr=0.05) #梯度下降
+optimiser = torch.optim.SGD(model.parameters(), lr=0.5) #梯度下降
 
 # 用于绘制三维图形用
 def loss_function(X, Y, w, b):
@@ -182,7 +182,4 @@ for n in range(1,epoches+1):
             ax3.plot(gd_w, gd_b)
         plt.pause(1)
 plt.show()
-torch.save(model.state_dict(), 'model.pth')
-torch.save(model, 'entire_model.pth')
-print("模型保存完毕")
 
