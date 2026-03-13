@@ -1,5 +1,5 @@
-from logging import critical
 
+import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -182,7 +182,7 @@ for n in range(1,epoches+1):
             ax3.plot(gd_w, gd_b)
         plt.pause(1)
 plt.show()
-torch.save(model.state_dict(), 'model.pth')
-torch.save(model, 'entire_model.pth')
+script_model = torch.jit.script(model)
+torch.jit.save(script_model, 'script_model.pth')
 print("模型保存完毕")
 
