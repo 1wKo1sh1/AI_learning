@@ -43,8 +43,33 @@ x_test_scaler = scaler.transform(x_test)#使用学习过的参数进行转换
 # pd变为torch识别的张量
 x_train_t = torch.tensor(x_train_scaler, dtype=torch.float32)
 x_test_t = torch.tensor(x_test_scaler, dtype=torch.float32)
-y_train_t = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
-y_test_t = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
+"""
+注意此处view不加会造成很大的问题
+mseloss损失函数自己会有广播，导致形状不对也能参与计算
+原本是一排标签，使用view(-1,1)或者unsqueeze(1)修正形状
+1. view(-1, 1)
+参数
+-1：自动推断该维度的大小，使总元素数不变。
+1：指定该维度的大小为 1。
+
+2. unsqueeze(dim)
+参数
+dim：指定在哪个位置插入大小为 1 的新维度。可以为正数或负数（负数表示从后往前数）。
+x = torch.tensor([1, 2, 3])          # shape: (3,)
+
+# 使用 view
+y_view = x.view(-1, 1)                # shape: (3, 1)
+
+# 使用 unsqueeze
+y_unsq1 = x.unsqueeze(1)              # shape: (3, 1)
+y_unsq2 = x.unsqueeze(-1)             # shape: (3, 1)
+
+# 检查是否相等
+print(torch.equal(y_view, y_unsq1))   # True
+print(torch.equal(y_view, y_unsq2))   # True
+"""
+y_train_t = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
+y_test_t = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
 
 # 2初始化神经元(前向)
 class HousingPricePredictor(nn.Module):
