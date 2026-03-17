@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from torchsummary import summary
 
+from tensorboardX import SummaryWriter as sw
 
 
 class LinearModel(nn.Module):
@@ -54,7 +55,7 @@ w = float(model.weight)
 b = float(model.bias)
 
 # 4.迭代过程
-epoches = 500
+epochs = 500
 
 # 在几万个数据的时候需要指定一个batchsize有几个数据输入，此处自动算好样本数，可以设置打乱
 # 返回一个可迭代对象，每次迭代为一个batch的数据，为元组包括特征和数据
@@ -66,7 +67,7 @@ print(x_train.shape)
 print(x_train.unsqueeze(1).shape)
 
 gd_path = []
-for n in range(1,epoches+1):
+for n in range(1,epochs+1):
     total_loss = 0
     for batch_x, batch_y in dataloader:
         # 数据转移到gpu
@@ -96,12 +97,20 @@ for n in range(1,epoches+1):
 
 # 直接输出模型(不能检测模型是否正确)
 print(model)
+
+'''
 # 1.summary打印
 # print(next(model.parameters()).device)
 # print(summary(model, (1,), device='cpu'))
 print(summary(model, (1,), device='cuda'))
+'''
+'''
 # 2.netron(网页,本地)，可能出问题，保存时
-# torch.jit.script(model)
+# script_model = torch.jit.script(model)
 # 使用torch.jit.save(script_model,"script_model.pth")
-# 保存脚本文件修复不连线问题
+# 保存脚本文件修复不连线问题(脚本还有跨平台支持)
 torch.save(model, './netron_test.pth')
+# 转化成ONNX：是一个开放的深度学习模型交换格式，允许在不同框架之间切换迁移，如pt、tf、mxnet，在不同框架之间进行部署与推理
+torch.onnx.export(model, torch.rand(1,1), "modle.onnx", )
+'''
+# 3.TensorboardX
