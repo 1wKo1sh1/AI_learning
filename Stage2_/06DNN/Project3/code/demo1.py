@@ -29,9 +29,17 @@ total_blocks = 240
 rows_needed = total_blocks * 24
 cols_needed = 18
 df = pd.DataFrame(np.nan, index=range(rows_needed), columns=range(cols_needed))
+print(df.shape)
+# 重新格式化数据
 for i in range(0,4320+1-18,18):
     print(i)
-    # n = i // 18
-    # df.iloc[24 * n : 24 * (n+1) , 0 : 19] = data.iloc[0 : 24 , i : 19 + i]
-    # print(df.head())
+    n = i // 18
+    df.iloc[24 * n : 24 * (n + 1) , 0 : 18] = data.iloc[0 : 24 , i : 18 + i]
+print(df.head())
+df.to_csv('测试.csv', index=False, encoding='utf-8-sig')
 
+# 划分
+y = df.iloc[9]
+X = df.drop(9, axis=1)
+print(X.head())
+print(y.head())
