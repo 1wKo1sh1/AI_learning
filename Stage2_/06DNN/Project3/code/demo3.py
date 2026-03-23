@@ -173,25 +173,13 @@ class DNN(nn.Module):
         # 调用父类的构造函数
         super(DNN, self).__init__()
         # 定义第一个Linear层，输入就是input_size，输出维度就是 hidden_size
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        # 定义第二个Linear层，输入是hidden_size，输出维度是 hidden_size
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        # 定义第三个Linear层，输入是hidden_size，输出维度是 hidden_size
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        # 定义第四个Linear层，输入是hidden_size，输出维度是 output_size
-        self.fc4 = nn.Linear(hidden_size, output_size)
+        self.fc1 = nn.Linear(input_size, 1)
         # 定义激活函数
         self.relu = nn.ReLU()
 
     def forward(self, x):
         # 输入数据经过第一个Linear和ReLU激活
         x = self.relu(self.fc1(x))
-        # 输入数据经过第二个Linear和ReLU激活
-        x = self.relu(self.fc2(x))
-        # 输入数据经过第三个Linear和ReLU激活
-        x = self.relu(self.fc3(x))
-        # 输入数据经过第四个Linear进行输出
-        x = self.fc4(x)
         return x
 
 # 实例化模型

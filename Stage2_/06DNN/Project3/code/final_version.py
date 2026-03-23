@@ -61,13 +61,12 @@ class PM25(nn.Module):
     def __init__(self):
         # 调用父类的构造函数
         super().__init__()
-        # 定义第一个Linear层，输入就是input_size，输出维度就是 hidden_size
+        # 输入层 输入特征 输出特征
         self.fc1 = nn.Linear(input_size, 256)
-        # 定义第二个Linear层，输入是hidden_size，输出维度是 hidden_size
+        # 隐藏层 输入特征 输出特征
         self.fc2 = nn.Linear(256, 256)
-        # 定义第三个Linear层，输入是hidden_size，输出维度是 hidden_size
         self.fc3 = nn.Linear(256, 256)
-        # 定义第四个Linear层，输入是hidden_size，输出维度是 output_size
+        # 输出层 输入特征 输出特征
         self.fc4 = nn.Linear(256, 1)
         # 定义激活函数
         self.relu = nn.ReLU()
@@ -75,11 +74,8 @@ class PM25(nn.Module):
     def forward(self, x):
         # 输入数据经过第一个Linear和ReLU激活
         x = self.relu(self.fc1(x))
-        # 输入数据经过第二个Linear和ReLU激活
         x = self.relu(self.fc2(x))
-        # 输入数据经过第三个Linear和ReLU激活
         x = self.relu(self.fc3(x))
-        # 输入数据经过第四个Linear进行输出
         x = self.fc4(x)
         return x
 
@@ -96,7 +92,7 @@ torch.manual_seed(seed)
 # 定义一个小batch
 dataset = TensorDataset(x_train_t, y_train_t)
 # 将迭代器放到cuda上
-dataloader = DataLoader(dataset, batch_size=500, shuffle=True, generator=torch.Generator(device='cuda'))
+dataloader = DataLoader(dataset, batch_size=100, shuffle=True, generator=torch.Generator(device='cuda'))
 # 迭代次数
 epochs = 1000
 for epoch in range(1,1+epochs):
@@ -120,7 +116,7 @@ for epoch in range(1,1+epochs):
 
     # 显示频率
     if epoch % 50 == 0 or epoch == 1:
-        print(f"epoches:[{epoch}], loss:[{avg_loss}]")
+        print(f"epoches:[{epoch}], loss:[{avg_loss:.4f}]")
 
 # 评估模型
 model.eval()
@@ -143,27 +139,24 @@ with torch.no_grad():
     y_pred = predictions.cpu().numpy()
     y_true = y_test_t.cpu().numpy()
 
-    plt.figure(figsize=(6, 6))
+    # 实际值和预测值关系
+    plt.figure(1,figsize=(6, 6))
     plt.scatter(y_true, y_pred, alpha=0.5)
-    plt.plot([0, 1], [0, 1], 'r--', label='Perfect Prediction')  # 对角线
-    plt.xlabel('True')
-    plt.ylabel('Pred')
+    plt.plot([0, 100], [0, 100], 'r--', label='T=P')  # 对角线
+    plt.xlabel('T')
+    plt.ylabel('P')
     plt.title('True vs Predicted')
     plt.legend()
     plt.grid(True)
 
-    # 绘制实际值和预测值的曲线
-    # 创建一个新的图形窗口
-    plt.figure(2)
-    # 绘制实际值的曲线，取最后100个样本
-    plt.plot(y_true[-100:], label='Actual Values', marker='o')
-    # 绘制预测值的曲线，取最后100个样本
-    plt.plot(y_pred[-100:], label='Predicted Values', marker='*')
-    # 设置x轴标签
-    plt.xlabel('Sample Index')
-    # 设置y轴标签
-    plt.ylabel('Values')
-    # 设置标题
-    plt.title('Actual vs Predicted Values in Linear Regression')
+    # 每个测试轮数的实际值和预测值
+    plt.figure(2,figsize=(6, 6))
+    plt.plot(y_true[-100:], label='T', marker='o')
+    plt.plot(y_pred[-100:], label='P', marker='*')
 
+    plt.xlabel('epoch')
+    plt.ylabel('P Or T')
+    plt.title('P Or T On epoch')
+    plt.legend()
+    plt.grid(True)
     plt.show()

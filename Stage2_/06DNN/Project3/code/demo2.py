@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score,confusion_matrix,classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 # 定义默认为gpu
 torch.set_default_device('cuda')
@@ -19,7 +19,7 @@ print(data.head())
 # 前几列不需要
 data = data.iloc[:, 3:]
 # 缺失的NR元素改为0
-data[data=='NR'] = '0'
+data[data == 'NR'] = '0'
 data = data.astype(float)
 # 重新整理为一般的格式
 data = data.T
@@ -31,32 +31,33 @@ cols_needed = 18
 df = pd.DataFrame(np.nan, index=range(rows_needed), columns=range(cols_needed))
 print(df.shape)
 # 重新格式化数据
-for i in range(0,4320+1-18,18):
+for i in range(0, 4320 + 1 - 18, 18):
     print(i)
     n = i // 18
-    df.iloc[24 * n : 24 * (n + 1) , 0 : 18] = data.iloc[0 : 24 , i : 18 + i]
-
+    df.iloc[24 * n: 24 * (n + 1), 0: 18] = data.iloc[0: 24, i: 18 + i]
 
 print(df.head())
 df.to_csv('测试.csv', index=False, encoding='utf-8-sig')
 
 # 划分
 y = df.iloc[:, 9].to_numpy()
-X = df.drop(9, axis=1).to_numpy()
-#==================================================
+X = df.drop(df.columns[8], axis=1).to_numpy()
+# ==================================================
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 # 标准化
 scaler = StandardScaler()
-x_train_scaled = scaler.fit_transform(x_train)# 学习参数保存到scaler对象，然后在转换
-x_test_scaled = scaler.transform(x_test)#使用学习过的参数进行转换
+x_train_scaled = scaler.fit_transform(x_train)  # 学习参数保存到scaler对象，然后在转换
+x_test_scaled = scaler.transform(x_test)  # 使用学习过的参数进行转换
 # 变为张量
 x_train_t = torch.tensor(x_train_scaled, dtype=torch.float32)
 x_test_t = torch.tensor(x_test_scaled, dtype=torch.float32)
 y_train_t = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
 y_test_t = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
 
-input_size = len(x_train_t[0])
 # 2.初始化神经元
+input_size = len(x_train_t[0])
+
+
 class PM25(nn.Module):
     def __init__(self):
         # 调用父类的构造函数
@@ -98,8 +99,8 @@ dataset = TensorDataset(x_train_t, y_train_t)
 # 将迭代器放到cuda上
 dataloader = DataLoader(dataset, batch_size=500, shuffle=True, generator=torch.Generator(device='cuda'))
 # 迭代次数
-epochs = 1000
-for epoch in range(1,1+epochs):
+epochs = 700
+for epoch in range(1, 1 + epochs):
     total_loss = 0
     for batch_x, batch_y in dataloader:
         # 前向传播
@@ -128,7 +129,7 @@ with torch.no_grad():
     # 预测值
     predictions = model(x_test_t)
     # 查看形状发现下文计算出错
-    print("预测值形状:",predictions.shape)
+    print("预测值形状:", predictions.shape)
     # 均方误差mse
     mse = criterion(predictions, y_test_t)
     # 残差平方和
@@ -136,7 +137,7 @@ with torch.no_grad():
     # 总平方和
     ss_tor = ((y_test_t - y_test_t.mean()) ** 2).sum()
     # r2
-    r2 = 1- (ss_res / ss_tor)
+    r2 = 1 - (ss_res / ss_tor)
     print(f"MSE: {mse.item():.4f}")
     print(f"R²: {r2.item():.4f}")
 
