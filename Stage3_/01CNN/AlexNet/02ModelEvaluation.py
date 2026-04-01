@@ -8,6 +8,8 @@ from torchvision import datasets,transforms
 import matplotlib.pyplot as plt
 from AlexNet import AlexNet
 
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 # 设置种子使结果可复现
 def setup_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)  # 固定哈希种子
@@ -63,28 +65,36 @@ test_loader = torch.utils.data.DataLoader(test_data, batch_size=32, shuffle=Fals
 
 # 2初始化模型
 model = AlexNet(num_classes=2).to(device)
-# 交叉熵内部已经融合softmax
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-# 3开始训练
-model.train()
-epochs = 100
-for epoch in range(epochs):
-    total_loss = 0
-    for batch_idx, (imgs, labels) in enumerate(train_loader):
-        #  转移设备
-        imgs, labels = imgs.to(device), labels.to(device)
-        # 前向
-        outputs = model(imgs)
-        loss = criterion(outputs, labels)
-        total_loss += loss
-        # 反向
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        print(f"------epoch : {epoch + 1}, Iter : {batch_idx}, loss : {loss:.4f}, epoch_progress : {batch_idx/len(train_loader)*100:.2f}%")
-    avg_loss = total_loss / len(train_loader)
-    print(f"epoch : {epoch + 1}, loss : {avg_loss:.4f}, progress : {epoch/epochs*100:.2f}%")
 
-    if (epoch+1) % 10 == 0 and epoch != 0:
-        torch.save(model.state_dict(), f'./model/model_{epoch+1}.pth')
+model.load_state_dict(torch.load('./model/model_100.pth'))
+print("评估模型")
+model.eval()
+
+total = 0
+correct = 0
+predicted_labels = []
+true_labels = []
+with torch.no_grad():
+    for imgs, labels in test_loader:
+        imgs,labels = imgs.to(device),labels.to(device)
+
+        # 得到一个概率序列
+        outputs = model(imgs)
+        # 获取序列最大值，即目前概率最大的可能所在的索引
+        _, predicted = torch.max(outputs.data, 1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().cpu().numpy()    # correct += (predicted == labels).sum().item()
+        predicted_labels.extend(predicted.cpu().numpy())
+        true_labels.extend(labels.cpu().numpy())
+# 正确率
+print(f"ACC {correct / total * 100 : .2f}%")
+# 混淆矩阵
+conf = confusion_matrix(true_labels, predicted_labels)
+# 热力图
+sns.heatmap(conf, annot=True, fmt="d",cmap="Blues")
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.show()
